@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Http;
 use LaravelZero\Framework\Commands\Command;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\confirm;
@@ -119,20 +120,18 @@ class CreateRadicle extends Command
             return;
         }
 
-        $progress = progress(label: 'Create Radicle project', steps: 3, hint: 'This may take some time.',);
-        $progress->start();
-
-        $this->cloneRadicleProject();
-        $progress->advance();
-
-        $this->installPlugins($plugins);
-        $progress->advance();
-
-        $this->installDependencies();
-        $progress->advance();
-
-        $progress->finish();
-        
+        progress(label: 'Create Radicle project', steps: 3, callback: function($step, $progress) use ($plugins){
+            if($step === 0){
+                $progress->label('Clone radicle project');
+                $this->cloneRadicleProject();
+            } elseif($step === 1){
+                $progress->label('Install plugins');
+                $this->installPlugins($plugins);
+            } elseif($step === 2){
+                $progress->label('Install dependencies');
+                $this->installDependencies();
+            }
+        });
         
         info('Radicle project created successfully!');
     }
@@ -155,13 +154,6 @@ class CreateRadicle extends Command
             if (isset($plugin['repositories'])) {
                 foreach ($plugin['repositories'] as $repository) {
                     shell_exec("cd {$this->folder} && composer config repositories.{$plugin['key']} composer {$repository['url']} > /dev/null 2>&1");
-                }
-            }
-            if(isset($plugin['auth'])){
-                foreach ($plugin['auth'] as $key => $value) {
-                    foreach ($value as $k => $v) {
-                        shell_exec("cd {$this->folder} && composer config {$key}.{$k} {$v['username']} {$v['password']} > /dev/null 2>&1");
-                    }
                 }
             }
             if (isset($plugin['require'])) {
