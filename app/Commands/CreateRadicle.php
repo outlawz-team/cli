@@ -177,8 +177,8 @@ class CreateRadicle extends Command
      */
     protected function installDependencies()
     {
-        // shell_exec("cd {$this->folder} && composer install > /dev/null 2>&1");
-        // shell_exec("cd {$this->folder} && npm install > /dev/null 2>&1");
-        // shell_exec("cd {$this->folder} && npm run build > /dev/null 2>&1");
+        shell_exec("cd {$this->folder} && composer install > /dev/null 2>&1");
+        shell_exec("cd {$this->folder} && npm install > /dev/null 2>&1");
+        shell_exec("cd {$this->folder} && npm run build > /dev/null 2>&1");
     }
 }
