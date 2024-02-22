@@ -650,7 +650,7 @@
         },
         {
             "name": "illuminate/collections",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/collections.git",
@@ -705,7 +705,7 @@
         },
         {
             "name": "illuminate/conditionable",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/conditionable.git",
@@ -751,7 +751,7 @@
         },
         {
             "name": "illuminate/contracts",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/contracts.git",
@@ -799,7 +799,7 @@
         },
         {
             "name": "illuminate/filesystem",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/filesystem.git",
@@ -926,7 +926,7 @@
         },
         {
             "name": "illuminate/macroable",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/macroable.git",
@@ -1029,7 +1029,7 @@
         },
         {
             "name": "illuminate/support",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/support.git",
@@ -4176,7 +4176,7 @@
         },
         {
             "name": "illuminate/bus",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/bus.git",
@@ -4229,7 +4229,7 @@
         },
         {
             "name": "illuminate/cache",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/cache.git",
@@ -4291,7 +4291,7 @@
         },
         {
             "name": "illuminate/config",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/config.git",
@@ -4339,7 +4339,7 @@
         },
         {
             "name": "illuminate/console",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/console.git",
@@ -4404,7 +4404,7 @@
         },
         {
             "name": "illuminate/container",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/container.git",
@@ -4455,7 +4455,7 @@
         },
         {
             "name": "illuminate/events",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/events.git",
@@ -4510,7 +4510,7 @@
         },
         {
             "name": "illuminate/pipeline",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/pipeline.git",
@@ -4558,16 +4558,16 @@
         },
         {
             "name": "illuminate/process",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/process.git",
-                "reference": "3a5804cb6c23ab8b2c903d8197ed93b10846fba1"
+                "reference": "e2a5145a7cbd6413c435f0f9e85c2065ecfc951b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/illuminate/process/zipball/3a5804cb6c23ab8b2c903d8197ed93b10846fba1",
-                "reference": "3a5804cb6c23ab8b2c903d8197ed93b10846fba1",
+                "url": "https://api.github.com/repos/illuminate/process/zipball/e2a5145a7cbd6413c435f0f9e85c2065ecfc951b",
+                "reference": "e2a5145a7cbd6413c435f0f9e85c2065ecfc951b",
                 "shasum": ""
             },
             "require": {
@@ -4605,11 +4605,11 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2023-11-22T20:09:43+00:00"
+            "time": "2024-02-20T20:17:36+00:00"
         },
         {
             "name": "illuminate/testing",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/testing.git",
@@ -4668,7 +4668,7 @@
         },
         {
             "name": "illuminate/view",
-            "version": "v10.45.0",
+            "version": "v10.45.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/illuminate/view.git",
@@ -5517,16 +5517,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.0.0",
+            "version": "v5.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "4a21235f7e56e713259a6f76bf4b5ea08502b9dc"
+                "reference": "2218c2252c874a4624ab2f613d86ac32d227bc69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/4a21235f7e56e713259a6f76bf4b5ea08502b9dc",
-                "reference": "4a21235f7e56e713259a6f76bf4b5ea08502b9dc",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/2218c2252c874a4624ab2f613d86ac32d227bc69",
+                "reference": "2218c2252c874a4624ab2f613d86ac32d227bc69",
                 "shasum": ""
             },
             "require": {
@@ -5569,9 +5569,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.0.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.0.1"
             },
-            "time": "2024-01-07T17:17:35+00:00"
+            "time": "2024-02-21T19:24:10+00:00"
         },
         {
             "name": "nunomaduro/collision",

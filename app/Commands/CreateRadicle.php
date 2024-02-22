@@ -2,17 +2,19 @@
 
 namespace App\Commands;
 
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Support\Facades\Http;
+use App\Commands\Traits\Stub;
 use LaravelZero\Framework\Commands\Command;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\progress;
+use function Laravel\Prompts\text;
 
 class CreateRadicle extends Command
 {
+    use Stub;
+
     /**
      * The signature of the command.
      *
@@ -99,6 +101,11 @@ class CreateRadicle extends Command
     protected $folder;
 
     /**
+     * Directory
+     */
+    protected $directory;
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -108,6 +115,9 @@ class CreateRadicle extends Command
         info('Creating a new Radicle project...');
 
         $this->folder = $this->argument('folder');
+        $this->directory = exec("cd {$this->folder} && pwd");
+
+        $name = text(label: 'Name of the project', required: true);
         
         $plugins = multiselect(
             label: 'Which plugins would you like to include?',
@@ -120,14 +130,17 @@ class CreateRadicle extends Command
             return;
         }
 
-        progress(label: 'Create Radicle project', steps: 3, callback: function($step, $progress) use ($plugins){
+        progress(label: 'Create Radicle project', steps: 4, callback: function($step, $progress) use ($plugins, $name){
             if($step === 0){
                 $progress->label('Clone radicle project');
                 $this->cloneRadicleProject();
             } elseif($step === 1){
+                $progress->label('Change files');
+                $this->changeFiles($name);
+            } elseif($step === 2){
                 $progress->label('Install plugins');
                 $this->installPlugins($plugins);
-            } elseif($step === 2){
+            } elseif($step === 3){
                 $progress->label('Install dependencies');
                 $this->installDependencies();
             }
@@ -142,6 +155,15 @@ class CreateRadicle extends Command
     protected function cloneRadicleProject()
     {
         shell_exec("git clone git@github.com:roots/radicle.git {$this->folder} > /dev/null 2>&1");
+    }
+
+    /**
+     * Clone the radicle project
+     */
+    protected function changeFiles($name)
+    {
+        $this->stub('radicle/style', ['PROJECTNAME' => $name], "{$this->directory}/public/content/themes/radicle/style.css");
+        $this->stub('radicle/screenshot', [], "{$this->directory}/public/content/themes/radicle/screenshot.png");
     }
 
     /**
