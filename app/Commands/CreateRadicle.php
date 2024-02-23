@@ -31,68 +31,11 @@ class CreateRadicle extends Command
     protected $description = 'Create a new radicle project.';
 
     /**
-     * Default plugins
-     */
-    protected $defaultPlugins = [
-        'classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo'
-    ];
-
-    /**
      * Plugins
      */
     protected function plugins()
     {
-        return [
-            'woocommerce' => [
-                'key' => 'woocommerce',
-                'name' => 'WooCommerce',
-                'require' => ['wpackagist-plugin/woocommerce'],
-            ],
-            'imagify' => [
-                'key' => 'imagify',
-                'name' => 'Imagify',
-                'require' => ['wpackagist-plugin/imagify'],
-            ],
-            'jetformbuilder' => [
-                'key' => 'jetformbuilder',
-                'name' => 'JetFormBuilder',
-                'require' => ['wpackagist-plugin/jetformbuilder'],
-            ],
-            'advanced-custom-fields' => [
-                'key' => 'advanced-custom-fields',
-                'name' => 'Advanced Custom Fields',
-                'repositories' => [['type' => 'composer', 'url' => 'https://connect.advancedcustomfields.com']],
-                'require' => ['wpengine/advanced-custom-fields-pro', 'stoutlogic/acf-builder'],
-                'auth' => [
-                    'http-basic' => [
-                        'connect.advancedcustomfields.com' => [
-                            'username' => 'b3JkZXJfaWQ9MTI4NDIwfHR5cGU9ZGV2ZWxvcGVyfGRhdGU9MjAxOC0wNC0wNCAxMToyNTo1Ng',
-                            'password' => "{$this->folder}.test"
-                        ]
-                    ]
-                ]
-            ],
-            'yoast-seo' => [
-                'key' => 'yoast-seo',
-                'name' => 'Yoast SEO',
-                'require' => ['wpackagist-plugin/wordpress-seo'],
-            ],
-            'classic-editor' => [
-                'key' => 'classic-editor',
-                'name' => 'Classic Editor',
-                'require' => ['wpackagist-plugin/classic-editor'],
-            ],
-            'wp-mail-smtp' => [
-                'key' => 'wp-mail-smtp',
-                'name' => 'WP Mail SMTP',
-                'require' => ['wpackagist-plugin/wp-mail-smtp'],
-            ],
-            'wp-mail-logging' => [
-                'key' => 'wp-mail-logging',
-                'name' => 'WP Mail Logging',
-                'require' => ['wpackagist-plugin/wp-mail-logging'],
-            ],
-        ];
+        return Config::get('wordpress.plugins');
     }
     
     /**
@@ -131,7 +74,7 @@ class CreateRadicle extends Command
         $this->data['plugins'] = multiselect(
             label: 'Which plugins would you like to include?',
             options: array_column($this->plugins(), 'name', 'key'),
-            default: $this->defaultPlugins
+            default: config('wordpress.default_plugins')
         );
 
         if(!confirm('Are you sure you want to continue?')){
@@ -171,6 +114,10 @@ class CreateRadicle extends Command
         info('----------------------------------------');
         $this->cloneRadicleProject();
         info('----------------------------------------');
+        info('Git');
+        info('----------------------------------------');
+        $this->setGit();
+        info('----------------------------------------');
         info('Installing plugins');
         info('----------------------------------------');
         $this->installingPlugins();
@@ -186,6 +133,10 @@ class CreateRadicle extends Command
         info('Configuring wordpress');
         info('----------------------------------------');
         $this->configuringWordpress();
+        info('----------------------------------------');
+        info('Commit changes');
+        info('----------------------------------------');
+        $this->commitChanges();
         
         info('----------------------------------------');
         info('Radicle project created successfully!');
@@ -258,10 +209,20 @@ class CreateRadicle extends Command
     }
 
     /**
+     * Set git
+     */
+    protected function setGit()
+    {
+        shell_exec("cd {$this->folder} && git branch -m main master");
+        shell_exec("cd {$this->folder} && git flow init -d");
+    }
+
+    /**
      * Install wordpress
      */
     protected function configuringWordpress()
     {
+
         shell_exec("cd {$this->folder} && wp core install --url={$this->data['url']} --title={$this->data['name']} --admin_user=outlawz --admin_password=Welkom01! --admin_email=dev@outlawz.nl");
         shell_exec("cd {$this->folder} && wp post delete $(wp post list --post_type='page' --format=ids) --force");
         shell_exec("cd {$this->folder} && wp post delete $(wp post list --post_type='post' --format=ids) --force");
@@ -269,5 +230,14 @@ class CreateRadicle extends Command
         shell_exec("cd {$this->folder} && wp rewrite structure '/%postname%/'");
         shell_exec("cd {$this->folder} && wp option update timezone_string 'Europe/Amsterdam'");
         shell_exec("cd {$this->folder} && wp language core install nl_NL && wp site switch-language nl_NL");
+    }
+
+    /**
+     * Commit changes
+     */
+    protected function commitChanges()
+    {
+        shell_exec("cd {$this->folder} && git add .");
+        shell_exec("cd {$this->folder} && git commit -m 'Initial commit'");
     }
 }
