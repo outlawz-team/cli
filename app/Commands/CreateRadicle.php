@@ -203,6 +203,7 @@ class CreateRadicle extends Command
      */
     protected function installingDependencies()
     {
+        shell_exec("cd {$this->folder} && composer require outlawz-team/radicle");
         shell_exec("cd {$this->folder} && composer install");
         shell_exec("cd {$this->folder} && npm install");
         shell_exec("cd {$this->folder} && npm run build");
