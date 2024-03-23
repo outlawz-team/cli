@@ -1,0 +1,25 @@
+{
+	"trailingComma": "es5",
+	"trailingCommaPHP": true,
+	"useTabs": true,
+	"tabWidth": 4,
+	"semi": true,
+	"singleQuote": true,
+	"printWidth": 3333,
+	"bracketSpacing": true,
+	"sortTailwindcssClasses": true,
+	"wrapAttributes": "auto",
+	"sortHtmlAttributes": "code-guide",
+	"wrapAttributesMinAttrs": 444,
+	"endWithNewLine": false,
+	"plugins": ["prettier-plugin-tailwindcss", "@shufo/prettier-plugin-blade", "@prettier/plugin-php"],
+	"overrides": [
+		{
+			"files": ["*.blade.php"],
+			"options": {
+				"parser": "blade",
+				"tabWidth": 1
+			}
+		}
+	]
+}

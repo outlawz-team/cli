@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Commands\Traits\Delete;
+use App\Commands\Traits\Files;
 use App\Commands\Traits\Stub;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +16,7 @@ use function Laravel\Prompts\text;
 
 class CreateRadicle extends Command
 {
-    use Stub;
+    use Files;
 
     /**
      * The signature of the command.
@@ -29,6 +31,26 @@ class CreateRadicle extends Command
      * @var string
      */
     protected $description = 'Create a new radicle project.';
+
+    /**
+     * Composer packages
+     */
+    protected $composer = [
+        'outlawz-team/radicle',
+    ];
+
+    /**
+     * Npm packages
+     */
+    protected $npm = [
+        'dev' => [
+            '@prettier/plugin-php',
+            'prettier-plugin-tailwindcss',
+            '@shufo/prettier-plugin-blade',
+            'lint-staged',
+            'husky'
+        ]
+    ];
 
     /**
      * Plugins
@@ -176,6 +198,34 @@ class CreateRadicle extends Command
             'DB_PASSWORD' => $this->data['db_password'],
             'WP_HOME' => "http://{$this->data['url']}",
         ], "{$this->directory}/.env");
+        $this->stub('radicle/lintstagedrc', [], "{$this->directory}/.lintstagedrc");
+        $this->stub('radicle/prettierrc', [], "{$this->directory}/.prettierrc");
+        $this->deleteDirectory("{$this->directory}/.git");
+        $this->emptyDirectory("{$this->directory}/app/Composers");
+        $this->stub('radicle/gitkeep', [], "{$this->directory}/app/Composers/.gitkeep");
+        $this->emptyDirectory("{$this->directory}/resources/images/icons");
+        $this->stub('radicle/gitkeep', [], "{$this->directory}/resources/images/icons/.gitkeep");
+        $this->emptyDirectory("{$this->directory}/resources/scripts/editor");
+        $this->stub('radicle/gitkeep', [], "{$this->directory}/resources/scripts/editor/.gitkeep");
+        $this->deleteDirectory("{$this->directory}/resources/views/blocks");
+        $this->deleteFile("{$this->directory}/resources/views/components/alert.blade.php");
+        $this->deleteFile("{$this->directory}/resources/views/components/modal.blade.php");
+        $this->deleteFile("{$this->directory}/resources/views/components/table.blade.php");
+        $this->deleteDirectory("{$this->directory}/resources/views/forms");
+        $this->stub('radicle/app', [], "{$this->directory}/resources/views/layouts/app.blade.php");
+        $this->deleteDirectory("{$this->directory}/resources/views/partials");
+        $this->stub('radicle/header', [], "{$this->directory}/resources/views/sections/header.blade.php");
+        $this->stub('radicle/footer', [], "{$this->directory}/resources/views/sections/footer.blade.php");
+        $this->stub('radicle/404', [], "{$this->directory}/resources/views/404.blade.php");
+        $this->stub('radicle/index', [], "{$this->directory}/resources/views/index.blade.php");
+        $this->stub('radicle/page', [], "{$this->directory}/resources/views/page.blade.php");
+        $this->stub('radicle/template-custom', [], "{$this->directory}/resources/views/template-custom.blade.php");
+        $this->deleteFile("{$this->directory}/resources/views/search.blade.php");
+        $this->deleteFile("{$this->directory}/resources/views/single.blade.php");
+        $this->deleteFile("{$this->directory}/resources/views/welcome.blade.php");
+        $this->stub('radicle/web', [], "{$this->directory}/routes/web.php");
+        $this->stub('radicle/BlocksServiceProvider', [], "{$this->directory}/app/Providers/BlocksServiceProvider.php");
+        $this->stub('radicle/post-types', [], "{$this->directory}/config/post-types.php");
     }
 
     /**
@@ -203,9 +253,20 @@ class CreateRadicle extends Command
      */
     protected function installingDependencies()
     {
+        foreach ($this->composer as $package) {
+            shell_exec("cd {$this->folder} && composer require {$package}");
+        }
+
+        foreach ($this->npm['dev'] as $package) {
+            shell_exec("cd {$this->folder} && npm install {$package} --save-dev");
+        }
+
         shell_exec("cd {$this->folder} && composer install");
         shell_exec("cd {$this->folder} && npm install");
         shell_exec("cd {$this->folder} && npm run build");
+
+        shell_exec("cd {$this->folder} && npx husky init");
+        $this->stub('radicle/pre-commit', [], "{$this->directory}/.husky/pre-commit");
     }
 
     /**
