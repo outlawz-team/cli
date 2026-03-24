@@ -1,0 +1,40 @@
+{
+  "name": "radicle",
+  "private": true,
+  "browserslist": [
+    "extends @roots/browserslist-config"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "translate": "npm run translate:pot && npm run translate:update",
+    "translate:pot": "wp i18n make-pot app ./resources/lang/radicle.pot --domain=radicle --ignore-domain && wp i18n make-pot resources ./resources/lang/radicle.pot --domain=radicle --ignore-domain --merge=./resources/lang/radicle.pot && wp i18n make-pot config ./resources/lang/radicle.pot --domain=radicle --ignore-domain --merge=./resources/lang/radicle.pot",
+    "translate:update": "for file in ./resources/lang/*.po; do wp i18n update-po ./resources/lang/radicle.pot $file; done",
+    "translate:compile": "npm run translate:mo && npm run translate:js",
+    "translate:js": "wp i18n make-json ./resources/lang --pretty-print",
+    "translate:mo": "wp i18n make-mo ./resources/lang ./resources/lang",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@prettier/plugin-php": "^0.24.0",
+    "@roots/vite-plugin": "^2.0.0",
+    "@shufo/prettier-plugin-blade": "^1.16.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/vite": "^4.2.1",
+    "@wordpress/icons": "^12.0.0",
+    "husky": "^9.1.7",
+    "laravel-vite-plugin": "^3.0.0",
+    "lint-staged": "^16.4.0",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.2.1",
+    "vite": "^8.0.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.15.8"
+  }
+}

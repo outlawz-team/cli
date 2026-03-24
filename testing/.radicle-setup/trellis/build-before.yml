@@ -1,0 +1,30 @@
+- name: Install npm dependencies
+  command: npm install
+  delegate_to: localhost
+  args:
+    chdir: "{{ project_local_path }}"
+
+- name: Compile assets for production
+  command: npm run build
+  delegate_to: localhost
+  args:
+    chdir: "{{ project_local_path }}"
+
+- name: Check for manifest
+  stat:
+    path: "{{ project_local_path }}/public/build/manifest.json"
+  delegate_to: localhost
+  register: entrypoints_data
+
+- name: Entrypoints missing
+  ansible.builtin.fail:
+    msg: "The theme is missing the build manifest file"
+  when: not entrypoints_data.stat.exists
+
+- name: Copy production assets
+  synchronize:
+    src: "{{ project_local_path }}/public/build"
+    dest: "{{ deploy_helper.new_release_path }}/public"
+    group: no
+    owner: no
+    rsync_opts: --chmod=Du=rwx,--chmod=Dg=rx,--chmod=Do=rx,--chmod=Fu=rw,--chmod=Fg=r,--chmod=Fo=r

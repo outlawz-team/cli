@@ -1,0 +1,14 @@
+{
+  "name": "Radicle Development",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/radicle/app",
+  "forwardPorts": [8080],
+  "remoteEnv": {
+    "WP_ENV": "development",
+    "WP_HOME": "http://web"
+  },
+  "initializeCommand": "[ ! -f '.devcontainer/.env' ] && cp '.devcontainer/.env.example' '.devcontainer/.env' || true",
+  "onCreateCommand": "chmod +x .devcontainer/install.sh && .devcontainer/install.sh",
+  "postCreateCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh"
+}

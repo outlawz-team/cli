@@ -1,0 +1,8 @@
+{
+  "preset": "psr12",
+  "exclude": [
+    "public/wp",
+    "public/content/mu-plugins/bedrock-disallow-indexing",
+    "public/content/plugins"
+  ]
+}
