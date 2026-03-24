@@ -1,0 +1,5 @@
+@import "./fonts.css";
+
+@theme {
+  --font-sans: "Public Sans", system-ui, -apple-system, sans-serif;
+}

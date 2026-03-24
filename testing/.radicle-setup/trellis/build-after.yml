@@ -1,0 +1,14 @@
+- name: Run Acorn optimize
+  command: wp acorn optimize
+  args:
+    chdir: "{{ deploy_helper.new_release_path }}"
+
+- name: Cache blade-icons
+  command: wp acorn icons:cache
+  args:
+    chdir: "{{ deploy_helper.new_release_path }}"
+
+- name: Activate aaemnosstv/wp-cli-login-command
+  command: wp login install --activate
+  args:
+    chdir: "{{ deploy_helper.new_release_path }}"

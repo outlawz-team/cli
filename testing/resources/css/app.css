@@ -1,0 +1,10 @@
+@import "tailwindcss" theme(static);
+@source "../views/";
+@source "../../app/";
+@import "./common/theme.css";
+
+@layer base {
+  .e-content a {
+    @apply text-blue-600 hover:underline;
+  }
+}

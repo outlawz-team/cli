@@ -1,0 +1,29 @@
+{
+  "baseBranchPatterns": [
+    "main"
+  ],
+  "commitMessageAction": "⬆️ Bump",
+  "commitMessageTopic": "{{depName}}",
+  "extends": [
+    "config:recommended",
+    "schedule:weekly"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin"
+      ]
+    },
+    {
+      "groupName": "Alpine.js",
+      "matchPackageNames": [
+        "alpinejs{/,}**",
+        "@alpinejs/{/,}**",
+        "@types/alpinejs{/,}**"
+      ]
+    }
+  ],
+  "timezone": "America/Los_Angeles"
+}

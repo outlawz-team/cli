@@ -1,0 +1,15 @@
+@import "tailwindcss" theme(static);
+@import "./common/theme.css";
+
+a:not(button) {
+  @apply text-blue-600 hover:underline;
+}
+
+ol {
+  @apply !list-decimal;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link {
+  background-color: transparent !important;
+  color: var(--wp--preset--color--black) !important;
+}

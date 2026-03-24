@@ -1,0 +1,48 @@
+# Uncomment this deploy job in this file to use the
+# https://github.com/roots/setup-trellis-cli GitHub Action
+# for deploying this repo to production when pushing to main.
+#
+# Make sure you've set up the following secrets in your repo:
+# - TRELLIS_DEPLOY_SSH_PRIVATE_KEY
+# - TRELLIS_DEPLOY_SSH_KNOWN_HOSTS
+# - ANSIBLE_VAULT_PASSWORD
+
+name: Deploy site
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Example deploy job
+        run: echo "This is an example deploy job. Uncomment the deploy job in .github/workflows/deploy.yml to use the roots/setup-trellis-cli GitHub Action for deploying this repo to production when pushing to main."
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: actions/setup-node@v3
+  #     with:
+  #       node-version: '20'
+  #       cache: npm
+  #       cache-dependency-path: package-lock.json
+  #   - uses: shimataro/ssh-key-action@v2
+  #     with:
+  #       key: ${{ secrets.TRELLIS_DEPLOY_SSH_PRIVATE_KEY }}
+  #       known_hosts: ${{ secrets.TRELLIS_DEPLOY_SSH_KNOWN_HOSTS }}
+  #   - uses: webfactory/ssh-agent@v0.5.4
+  #     with:
+  #       ssh-private-key: ${{ secrets.TRELLIS_DEPLOY_SSH_PRIVATE_KEY }}
+  #   - uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.12'
+  #   - uses: roots/setup-trellis-cli@main
+  #     with:
+  #       ansible-vault-password: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+  #       repo-token: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: Deploy
+  #     run: cd trellis && trellis deploy production
