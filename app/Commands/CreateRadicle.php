@@ -59,7 +59,7 @@ class CreateRadicle extends Command
     {
         return Config::get('wordpress.plugins');
     }
-    
+
     /**
      * Folder
      */
@@ -92,14 +92,14 @@ class CreateRadicle extends Command
         $this->data['db_user'] = text(label: 'Database user', required: true, default: 'root');
         $this->data['db_password'] = text(label: 'Database password');
         $this->data['url'] = text(label: 'URL', required: true, default: "{$this->folder}.test");
-        
+
         $this->data['plugins'] = multiselect(
             label: 'Which plugins would you like to include?',
             options: array_column($this->plugins(), 'name', 'key'),
             default: config('wordpress.default_plugins')
         );
 
-        if(!confirm('Are you sure you want to continue?')){
+        if (!confirm('Are you sure you want to continue?')) {
             error('Radicle project creation cancelled.');
             return;
         }
@@ -121,7 +121,7 @@ class CreateRadicle extends Command
 
         $database = DB::connection('terminal')->select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{$this->data['db_name']}'");
         if (count($database) > 0) {
-            if(confirm('Database already exists. Do you want to drop the database?')){
+            if (confirm('Database already exists. Do you want to drop the database?')) {
                 DB::connection('terminal')->statement("DROP DATABASE {$this->data['db_name']}");
             } else {
                 error('Database already exists. Please remove the database or choose a different name.');
@@ -159,18 +159,17 @@ class CreateRadicle extends Command
         info('Commit changes');
         info('----------------------------------------');
         $this->commitChanges();
-        
+
         info('----------------------------------------');
         info('Radicle project created successfully!');
         info('----------------------------------------');
-        info('You can now visit your project at http://'.$this->data['url']);
-        info('And login to the admin panel at http://'.$this->data['url'].'/admin');
+        info('You can now visit your project at http://' . $this->data['url']);
+        info('And login to the admin panel at http://' . $this->data['url'] . '/admin');
         info('----------------------------------------');
         info('Login details:');
         info('Username: outlawz');
         info('Password: Welkom01!');
         info('----------------------------------------');
-
     }
 
     /**
@@ -178,7 +177,7 @@ class CreateRadicle extends Command
      */
     protected function cloneRadicleProject()
     {
-        shell_exec("git clone git@github.com:roots/radicle.git {$this->folder}");
+        shell_exec("c {$this->folder}");
         $this->directory = exec("cd {$this->folder} && pwd");
     }
 
@@ -233,7 +232,7 @@ class CreateRadicle extends Command
      */
     protected function installingPlugins()
     {
-        foreach($this->data['plugins'] as $item){
+        foreach ($this->data['plugins'] as $item) {
             $plugin = $this->plugins()[$item];
             if (isset($plugin['repositories'])) {
                 foreach ($plugin['repositories'] as $repository) {
@@ -291,6 +290,7 @@ class CreateRadicle extends Command
         shell_exec("cd {$this->folder} && wp rewrite structure '/%postname%/'");
         shell_exec("cd {$this->folder} && wp option update timezone_string 'Europe/Amsterdam'");
         shell_exec("cd {$this->folder} && wp language core install nl_NL && wp site switch-language nl_NL");
+        shell_exec("cd {$this->folder} && wp acorn outlawz:boost");
     }
 
     /**

@@ -26,17 +26,17 @@ return [
         'woocommerce' => [
             'key' => 'woocommerce',
             'name' => 'WooCommerce',
-            'require' => ['wpackagist-plugin/woocommerce'],
+            'require' => ['wp-plugin/woocommerce'],
         ],
         'imagify' => [
             'key' => 'imagify',
             'name' => 'Imagify',
-            'require' => ['wpackagist-plugin/imagify'],
+            'require' => ['wp-plugin/imagify'],
         ],
         'jetformbuilder' => [
             'key' => 'jetformbuilder',
             'name' => 'JetFormBuilder',
-            'require' => ['wpackagist-plugin/jetformbuilder'],
+            'require' => ['wp-plugin/jetformbuilder'],
         ],
         'advanced-custom-fields' => [
             'key' => 'advanced-custom-fields',
@@ -47,22 +47,22 @@ return [
         'yoast-seo' => [
             'key' => 'yoast-seo',
             'name' => 'Yoast SEO',
-            'require' => ['wpackagist-plugin/wordpress-seo'],
+            'require' => ['wp-plugin/wordpress-seo'],
         ],
         'classic-editor' => [
             'key' => 'classic-editor',
             'name' => 'Classic Editor',
-            'require' => ['wpackagist-plugin/classic-editor'],
+            'require' => ['wp-plugin/classic-editor'],
         ],
         'wp-mail-smtp' => [
             'key' => 'wp-mail-smtp',
             'name' => 'WP Mail SMTP',
-            'require' => ['wpackagist-plugin/wp-mail-smtp'],
+            'require' => ['wp-plugin/wp-mail-smtp'],
         ],
         'wp-mail-logging' => [
             'key' => 'wp-mail-logging',
             'name' => 'WP Mail Logging',
-            'require' => ['wpackagist-plugin/wp-mail-logging'],
+            'require' => ['wp-plugin/wp-mail-logging'],
         ],
     ],
 
