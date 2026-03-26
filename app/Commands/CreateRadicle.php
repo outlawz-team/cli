@@ -177,7 +177,7 @@ class CreateRadicle extends Command
      */
     protected function cloneRadicleProject()
     {
-        shell_exec("c {$this->folder}");
+        shell_exec("git clone git@github.com:roots/radicle.git {$this->folder}");
         $this->directory = exec("cd {$this->folder} && pwd");
     }
 
