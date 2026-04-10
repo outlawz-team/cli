@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'default_plugins' => ['classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo'],
+    'default_plugins' => ['classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo', 'post-duplicator'],
 
     /*
     |--------------------------------------------------------------------------
@@ -63,6 +63,11 @@ return [
             'key' => 'wp-mail-logging',
             'name' => 'WP Mail Logging',
             'require' => ['wp-plugin/wp-mail-logging'],
+        ],
+        'post-duplicator' => [
+            'key' => 'post-duplicator',
+            'name' => 'Post Duplicator',
+            'require' => ['wp-plugin/post-duplicator'],
         ],
     ],
 
