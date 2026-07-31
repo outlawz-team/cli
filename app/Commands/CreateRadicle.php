@@ -232,6 +232,13 @@ class CreateRadicle extends Command
      */
     protected function installingPlugins()
     {
+        $wpackagist = escapeshellarg(json_encode([
+            'type' => 'composer',
+            'url' => 'https://wpackagist.org',
+            'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
+        ]));
+        shell_exec("cd {$this->folder} && composer config repositories.wpackagist {$wpackagist}");
+
         foreach ($this->data['plugins'] as $item) {
             $plugin = $this->plugins()[$item];
             if (isset($plugin['repositories'])) {
