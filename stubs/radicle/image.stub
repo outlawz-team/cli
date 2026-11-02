@@ -1,0 +1,18 @@
+# Bouwt het image van de site op het golden image van Outlawz Cloud (outlawz-team/cloud-images) en
+# pusht het naar GHCR als <branch>-<sha7>: develop-… voor test, master-… voor live.
+# De naam image.yml houden: Outlawz Cloud kijkt naar de runs van deze workflow.
+name: Image
+
+on:
+  push:
+    branches: [develop, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    uses: outlawz-team/cloud-images/.github/workflows/wordpress.yml@{{CLOUD_IMAGES_REF}}
+    secrets: inherit
