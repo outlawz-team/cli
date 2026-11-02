@@ -52,22 +52,24 @@ trait Files
     public function deleteDirectory($destination)
     {
         if (is_dir($destination)) {
-            $files = glob($destination . '/*');
-            foreach ($files as $file) {
-                is_dir($file) ? $this->deleteDirectory($file) : unlink($file);
-            }
+            $this->emptyDirectory($destination);
             rmdir($destination);
         }
     }
 
+    /**
+     * Remove everything in a directory, hidden files (.git, .gitkeep) included.
+     */
     public function emptyDirectory($destination)
     {
-        $files = glob($destination . '/*');
-        foreach ($files as $file) {
-            is_dir($file) ? $this->deleteDirectory($file) : unlink($file);
-        }
         if (!is_dir($destination)) {
             mkdir($destination, 0755, true);
+            return;
+        }
+
+        foreach (array_diff(scandir($destination), ['.', '..']) as $file) {
+            $path = "{$destination}/{$file}";
+            is_dir($path) && !is_link($path) ? $this->deleteDirectory($path) : unlink($path);
         }
     }
 }
