@@ -1,0 +1,5 @@
+// Outlawz Cloud: de MySQL-gebruiker van een site vereist TLS; het platform zet DB_SSL=true.
+if (env('DB_SSL')) {
+    Config::define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL);
+}
+

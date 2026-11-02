@@ -1,0 +1,31 @@
+/**
+ * WP Mail SMTP: mail via SendGrid (live) of via de eigen Mailpit van de omgeving (test: SMTP zonder
+ * login), ingesteld met omgevingsvariabelen in plaats van in de database, zodat de sleutel niet meegaat
+ * in een database-kopie en per omgeving (test/live) kan verschillen. Alleen als WPMS_ON aan staat;
+ * anders gebruikt de plugin zijn eigen instellingen. Outlawz Cloud zet deze variabelen zelf zodra de
+ * Mail-dienst aan staat.
+ */
+if (env('WPMS_ON')) {
+    foreach ([
+        'WPMS_ON',
+        'WPMS_MAILER',
+        'WPMS_SENDGRID_API_KEY',
+        'WPMS_SENDGRID_DOMAIN',
+        'WPMS_SMTP_HOST',
+        'WPMS_SMTP_PORT',
+        'WPMS_SSL',
+        'WPMS_SMTP_AUTH',
+        'WPMS_SMTP_AUTOTLS',
+        'WPMS_MAIL_FROM',
+        'WPMS_MAIL_FROM_FORCE',
+        'WPMS_MAIL_FROM_NAME',
+        'WPMS_MAIL_FROM_NAME_FORCE',
+        'WPMS_SET_RETURN_PATH',
+        'WPMS_DO_NOT_SEND',
+    ] as $wpms) {
+        if (env($wpms) !== null) {
+            Config::define($wpms, env($wpms));
+        }
+    }
+}
+
