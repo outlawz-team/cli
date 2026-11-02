@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'default_plugins' => ['classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo', 'post-duplicator'],
+    'default_plugins' => ['classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo', 'post-duplicator', 'acf-extended', 'cp-blocks-for-acf', 'safe-svg'],
 
     /*
     |--------------------------------------------------------------------------
@@ -68,6 +68,21 @@ return [
             'key' => 'post-duplicator',
             'name' => 'Post Duplicator',
             'require' => ['wp-plugin/post-duplicator'],
+        ],
+        'acf-extended' => [
+            'key' => 'acf-extended',
+            'name' => 'ACF Extended',
+            'require' => ['wpackagist-plugin/acf-extended'],
+        ],
+        'cp-blocks-for-acf' => [
+            'key' => 'cp-blocks-for-acf',
+            'name' => 'CP Blocks for ACF',
+            'require' => ['wpackagist-plugin/cp-blocks-for-acf'],
+        ],
+        'safe-svg' => [
+            'key' => 'safe-svg',
+            'name' => 'Safe SVG',
+            'require' => ['wpackagist-plugin/safe-svg'],
         ],
     ],
 

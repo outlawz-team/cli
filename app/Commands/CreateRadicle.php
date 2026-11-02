@@ -13,6 +13,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\warning;
 
 class CreateRadicle extends Command
 {
@@ -74,6 +75,11 @@ class CreateRadicle extends Command
      * Data
      */
     protected $data = [];
+
+    /**
+     * What still needs doing by hand for Outlawz Cloud
+     */
+    protected $cloudTodo = [];
 
     /**
      * Execute the console command.
@@ -152,6 +158,10 @@ class CreateRadicle extends Command
         info('----------------------------------------');
         $this->changingFiles();
         info('----------------------------------------');
+        info('Configuring Outlawz Cloud');
+        info('----------------------------------------');
+        $this->configuringCloud();
+        info('----------------------------------------');
         info('Configuring wordpress');
         info('----------------------------------------');
         $this->configuringWordpress();
@@ -169,6 +179,16 @@ class CreateRadicle extends Command
         info('Login details:');
         info('Username: outlawz');
         info('Password: Welkom01!');
+        info('----------------------------------------');
+        info('Outlawz Cloud:');
+        info('Push develop and master to a repository in outlawz-team: .github/workflows/image.yml builds the image on the golden image.');
+        if (collect($this->data['plugins'])->contains(fn ($item) => isset($this->plugins()[$item]['repositories']))) {
+            warning('Private packages (ACF Pro): the build needs the repository secret COMPOSER_AUTH with the content of auth.json.');
+            warning('  gh secret set COMPOSER_AUTH -R outlawz-team/<repo> < ~/.composer/auth.json');
+        }
+        foreach ($this->cloudTodo as $todo) {
+            warning($todo);
+        }
         info('----------------------------------------');
     }
 
@@ -228,10 +248,53 @@ class CreateRadicle extends Command
     }
 
     /**
+     * Make the project ready for Outlawz Cloud: the workflow that builds the image on the golden
+     * image (outlawz-team/cloud-images), a PHP requirement the golden image accepts, and the
+     * configuration the variables of the platform need (DB_SSL, WP Mail SMTP).
+     */
+    protected function configuringCloud()
+    {
+        foreach (Config::get('cloud.example_workflows') as $workflow) {
+            $this->deleteFile("{$this->directory}/.github/workflows/{$workflow}");
+        }
+        if (!is_dir("{$this->directory}/.github/workflows")) {
+            mkdir("{$this->directory}/.github/workflows", 0755, true);
+        }
+        $this->stub('radicle/image', [
+            'CLOUD_IMAGES_REF' => Config::get('cloud.cloud_images_ref'),
+        ], "{$this->directory}/.github/workflows/image.yml");
+
+        // The golden image takes the lowest minor version the requirement allows: >=8.4, ^8.4, ~8.4 or 8.4.*.
+        $composer = json_decode(file_get_contents("{$this->directory}/composer.json"), true);
+        $php = str_replace(' ', '', $composer['require']['php'] ?? '');
+        if (!preg_match('/^((>=|\^|~)\d+\.\d+(\.\d+)?|\d+\.\d+\.\*)$/', $php)) {
+            shell_exec("cd {$this->folder} && composer require 'php:>=8.4'");
+        }
+
+        $config = "{$this->directory}/bedrock/application.php";
+        if (!$this->insertStub('radicle/db-ssl', $config, 'DB_SSL', ["Config::define('DB_NAME'"])) {
+            $this->cloudTodo[] = 'bedrock/application.php has no DB_SSL block: add stubs/radicle/db-ssl.stub of the cli by hand.';
+        }
+        if (!$this->insertStub('radicle/wp-mail-smtp', $config, 'WPMS_ON', ["/**\n * Debugging Settings", 'Config::apply();'])) {
+            $this->cloudTodo[] = 'bedrock/application.php has no WP Mail SMTP block: add stubs/radicle/wp-mail-smtp.stub of the cli by hand.';
+        }
+        if (!in_array('wp-mail-smtp', $this->data['plugins'])) {
+            $this->cloudTodo[] = 'WP Mail SMTP is not installed: without it the Mail service of Outlawz Cloud does nothing.';
+        }
+    }
+
+    /**
      * Install the plugins
      */
     protected function installingPlugins()
     {
+        $wpackagist = escapeshellarg(json_encode([
+            'type' => 'composer',
+            'url' => 'https://wpackagist.org',
+            'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
+        ]));
+        shell_exec("cd {$this->folder} && composer config repositories.wpackagist {$wpackagist}");
+
         foreach ($this->data['plugins'] as $item) {
             $plugin = $this->plugins()[$item];
             if (isset($plugin['repositories'])) {
