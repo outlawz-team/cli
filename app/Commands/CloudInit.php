@@ -84,6 +84,7 @@ class CloudInit extends Command
                 $this->bud();
             }
 
+            $this->ghcrPullToken();
             $this->composerAuth($layout === 'platform' ? "{$this->directory}/apps/api/composer.json" : "{$this->directory}/composer.json");
         })) {
             return self::FAILURE;
@@ -282,14 +283,10 @@ class CloudInit extends Command
         }
 
         $repository = $this->githubRepositoryOf($this->directory);
-        try {
-            $secrets = $repository !== null ? $this->shell(['gh', 'secret', 'list', '-R', $repository], $this->directory, quiet: true) : null;
-        } catch (RuntimeException $exception) {
-            $secrets = null;
-        }
+        $secrets = $this->repositorySecrets($this->directory, $repository);
 
         if ($secrets !== null) {
-            if (preg_match('/^COMPOSER_AUTH\s/m', $secrets)) {
+            if (in_array('COMPOSER_AUTH', $secrets)) {
                 return;
             }
             if ($this->allowed("Private packages (" . implode(', ', $private) . "): set the secret COMPOSER_AUTH of {$repository} from your auth.json?")) {
@@ -303,6 +300,31 @@ class CloudInit extends Command
         }
 
         $this->todo[] = 'Private packages (' . implode(', ', $private) . '): the build needs the repository secret COMPOSER_AUTH. gh secret set COMPOSER_AUTH -R ' . ($repository ?? 'outlawz-team/<repo>') . ' < ~/.composer/auth.json';
+    }
+
+    /**
+     * The secret GHCR_PULL_TOKEN: every build reads the private golden image with it.
+     */
+    protected function ghcrPullToken()
+    {
+        $repository = $this->githubRepositoryOf($this->directory);
+        $secrets = $this->repositorySecrets($this->directory, $repository);
+
+        if ($secrets !== null) {
+            if (in_array('GHCR_PULL_TOKEN', $secrets)) {
+                return;
+            }
+            if ($this->allowed("The build of {$repository} needs the secret GHCR_PULL_TOKEN to read the golden image. Set it?")) {
+                $todo = $this->setGhcrPullToken($this->directory, $repository);
+                $this->todo = array_merge($this->todo, $todo);
+                if ($todo === []) {
+                    $this->done[] = "Secret GHCR_PULL_TOKEN of {$repository}";
+                }
+                return;
+            }
+        }
+
+        $this->todo[] = 'The build needs the repository secret GHCR_PULL_TOKEN (ghcr-pull-token-actions in the vault) to read the golden image: gh secret set GHCR_PULL_TOKEN -R ' . ($repository ?? 'outlawz-team/<repo>');
     }
 
     /**

@@ -118,6 +118,9 @@ class CreatePlatform extends Command
         info($this->data['github']
             ? "Pushed to https://github.com/{$this->data['repository']}: .github/workflows/image.yml builds the image of develop on the golden image."
             : 'Push develop and master to a repository in outlawz-team: .github/workflows/image.yml builds the image on the golden image.');
+        if (!$this->data['github']) {
+            warning('Set the repository secret GHCR_PULL_TOKEN (ghcr-pull-token-actions in the vault) before the first push: gh secret set GHCR_PULL_TOKEN -R outlawz-team/<repo>');
+        }
         foreach ($this->todo as $todo) {
             warning($todo);
         }
