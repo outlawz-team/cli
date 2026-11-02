@@ -5,6 +5,8 @@ namespace App\Commands\Traits;
 use Illuminate\Support\Facades\Config;
 use RuntimeException;
 
+use function Laravel\Prompts\password;
+
 /**
  * What a project needs to be built on a golden image of Outlawz Cloud (outlawz-team/cloud-images),
  * and its repository on GitHub. Uses the traits Files and Shell.
@@ -186,8 +188,9 @@ trait Cloud
     }
 
     /**
-     * Create the repository on GitHub, set COMPOSER_AUTH when the build needs it, and push master
-     * and develop: the push builds the first images. Returns what still needs doing by hand.
+     * Create the repository on GitHub, set GHCR_PULL_TOKEN (and COMPOSER_AUTH when the build needs
+     * it), and push master and develop: the push builds the first images, so the secrets go first.
+     * Returns what still needs doing by hand.
      */
     public function createGithubRepository($directory, $repository, $composerAuth)
     {
@@ -200,6 +203,7 @@ trait Cloud
         $this->shell(['gh', 'repo', 'create', $repository, '--private'], $directory);
         $this->shell(['git', 'remote', 'add', 'origin', "git@github.com:{$repository}.git"], $directory);
 
+        $todo = array_merge($todo, $this->setGhcrPullToken($directory, $repository));
         if ($composerAuth) {
             $todo = array_merge($todo, $this->setComposerAuth($directory, $repository));
         }
@@ -225,5 +229,50 @@ trait Cloud
         $this->shell(['gh', 'secret', 'set', 'COMPOSER_AUTH', '-R', $repository], $directory, input: file_get_contents($auth));
 
         return [];
+    }
+
+    /**
+     * The secret GHCR_PULL_TOKEN of the repository: the golden images are private, and on GitHub Free
+     * a private repository cannot read the secrets of the organization, so without it the build stops
+     * with 401 Unauthorized. The token (ghcr-pull-token-actions in the vault) comes from
+     * OUTLAWZ_GHCR_PULL_TOKEN, or is asked for; it goes to gh on stdin, never on the command line.
+     * Returns what still needs doing by hand.
+     */
+    public function setGhcrPullToken($directory, $repository)
+    {
+        $token = trim((string) getenv('OUTLAWZ_GHCR_PULL_TOKEN'));
+
+        if ($token === '' && isset($this->input) && $this->input->isInteractive()) {
+            $token = trim(password(
+                label: "GHCR_PULL_TOKEN for {$repository}",
+                hint: 'ghcr-pull-token-actions in the vault (read:packages); empty skips it. Or set OUTLAWZ_GHCR_PULL_TOKEN.',
+            ));
+        }
+
+        if ($token === '') {
+            return ["The build needs the secret GHCR_PULL_TOKEN (ghcr-pull-token-actions in the vault): gh secret set GHCR_PULL_TOKEN -R {$repository}"];
+        }
+
+        $this->shell(['gh', 'secret', 'set', 'GHCR_PULL_TOKEN', '-R', $repository], $directory, input: $token);
+
+        return [];
+    }
+
+    /**
+     * The names of the secrets of a repository, or null when gh cannot read them.
+     */
+    public function repositorySecrets($directory, $repository)
+    {
+        if ($repository === null) {
+            return null;
+        }
+
+        try {
+            $list = $this->shell(['gh', 'secret', 'list', '-R', $repository], $directory, quiet: true);
+        } catch (RuntimeException $exception) {
+            return null;
+        }
+
+        return collect(explode("\n", $list))->map(fn ($line) => strtok($line, " \t"))->filter()->values()->all();
     }
 }

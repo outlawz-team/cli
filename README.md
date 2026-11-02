@@ -41,8 +41,9 @@ zet daarna alles klaar:
 - de bestanden van Outlawz (thema, layouts, blocks, post types);
 - WordPress geïnstalleerd, in het Nederlands, met een pagina Home (login `outlawz` / `Welkom01!`);
 - klaar voor Outlawz Cloud (zie hieronder);
-- een eerste commit op `develop`, en als je dat wilt de repository `outlawz-team/<map>` op GitHub, met het secret
-  `COMPOSER_AUTH` (bij ACF Pro) en de eerste push. Die push bouwt meteen het image voor test.
+- een eerste commit op `develop`, en als je dat wilt de repository `outlawz-team/<map>` op GitHub, met de
+  [secrets](#secrets) `GHCR_PULL_TOKEN` en `COMPOSER_AUTH` (bij ACF Pro) en de eerste push. Die push bouwt meteen het
+  image voor test.
 
 Gaat een stap mis, dan stopt het commando en zegt het welke stap en waarom. Haal dan de map en de database weg en
 probeer het opnieuw.
@@ -58,7 +59,8 @@ Een nieuw platform (Laravel-API en Next.js-dashboard) vanuit
   heeft alleen 8.4) en `output: "standalone"` in `next.config`;
 - de API geïnstalleerd (`composer run setup` en de gebruiker uit de seeder) en het dashboard (`npm install`,
   `.env.local`);
-- een eerste commit op `develop`, en als je dat wilt de repository op GitHub met de eerste push.
+- een eerste commit op `develop`, en als je dat wilt de repository op GitHub, met het secret `GHCR_PULL_TOKEN` en de
+  eerste push.
 
 ### `outlawz cloud:init [map]`
 
@@ -72,6 +74,7 @@ doet alles zonder te vragen.
 - WordPress: de blokken voor `DB_SSL` en WP Mail SMTP in de configuratie, en `cloud/config.yml` voor een site die
   met bud bouwt;
 - platform: `output: "standalone"` in `next.config` van het dashboard;
+- zet het secret `GHCR_PULL_TOKEN`, als het er nog niet is;
 - private pakketten (ACF Pro, private repo's): zet het secret `COMPOSER_AUTH` vanuit je `auth.json`, als het er nog niet is.
 
 Wat het niet zelf kan, staat aan het eind. Daarna committen en naar `develop` pushen.
@@ -81,6 +84,24 @@ Wat het niet zelf kan, staat aan het eind. Daarna committen en naar `develop` pu
 Een project heeft geen eigen Dockerfile: `.github/workflows/image.yml` roept de workflow van cloud-images aan, die het
 image bouwt op het golden image (`wordpress/v1` of `platform/v1`, in `config/cloud.php`). Uitzonderingen per project
 staan in `cloud/` van het project; zie de README van cloud-images. Het project zelf koppel je daarna in Outlawz Cloud.
+
+### Secrets
+
+Secrets van de organisatie kunnen privé-repo's op GitHub Free niet lezen, dus elke repository heeft ze zelf nodig:
+
+| Secret | Wanneer | Waar vandaan |
+|---|---|---|
+| `GHCR_PULL_TOKEN` | altijd: de golden images zijn privé; zonder stopt de build met `401 Unauthorized` | `ghcr-pull-token-actions` in de kluis (`read:packages`) |
+| `COMPOSER_AUTH` | alleen met private pakketten (ACF Pro, private repo's) | je globale `auth.json` van composer |
+
+De commando's zetten ze met `gh` en geven de waarde via stdin, nooit op de commandoregel. Het token vragen ze verborgen;
+zet je het in `OUTLAWZ_GHCR_PULL_TOKEN`, dan vragen ze het niet:
+
+```bash
+export OUTLAWZ_GHCR_PULL_TOKEN=...   # bijvoorbeeld in ~/.zshrc, of uit je wachtwoordmanager
+```
+
+Laat je het leeg, dan noemen ze aan het eind het commando om het later zelf te zetten.
 
 ## Ontwikkelen
 
