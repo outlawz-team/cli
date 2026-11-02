@@ -1,0 +1,5 @@
+# Uitzonderingen op het golden image van Outlawz Cloud (zie outlawz-team/cloud-images).
+# Deze site bouwt zijn assets met bud in plaats van Vite.
+assets:
+  node: 20
+  command: yarn bud build production --no-browserslist-update

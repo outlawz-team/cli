@@ -1,0 +1,34 @@
+# Checks a release and creates it on GitHub. composer global require and outlawz self-update take
+# builds/outlawz from the tag, so the phar in the tag has to say the version of the tag: a release
+# without a new build (scripts/release.sh does it) fails here.
+name: Release
+
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Phar of this version
+        run: |
+          built=$(php builds/outlawz --version)
+          if [ "$built" != "Outlawz $GITHUB_REF_NAME" ]; then
+            echo "::error file=builds/outlawz::builds/outlawz says '$built', not 'Outlawz $GITHUB_REF_NAME': build it in the release (scripts/release.sh)"
+            exit 1
+          fi
+
+      - name: Release on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" builds/outlawz --title "$GITHUB_REF_NAME" --generate-notes

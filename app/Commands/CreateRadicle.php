@@ -2,9 +2,9 @@
 
 namespace App\Commands;
 
-use App\Commands\Traits\Delete;
+use App\Commands\Traits\Cloud;
 use App\Commands\Traits\Files;
-use App\Commands\Traits\Stub;
+use App\Commands\Traits\Shell;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use LaravelZero\Framework\Commands\Command;
@@ -17,7 +17,7 @@ use function Laravel\Prompts\warning;
 
 class CreateRadicle extends Command
 {
-    use Files;
+    use Cloud, Files, Shell;
 
     /**
      * The signature of the command.
@@ -92,9 +92,18 @@ class CreateRadicle extends Command
 
         $this->folder = $this->argument('folder');
 
+        if (!preg_match('/^[A-Za-z0-9._-]+$/', $this->folder)) {
+            error('The folder may only contain letters, digits, dots, dashes and underscores.');
+            return self::FAILURE;
+        }
+        if (file_exists($this->folder)) {
+            error("{$this->folder} already exists.");
+            return self::FAILURE;
+        }
+
         $this->data['name'] = text(label: 'Name of the project', required: true);
         $this->data['db_host'] = text(label: 'Database host', required: true, default: '127.0.0.1');
-        $this->data['db_name'] = text(label: 'Database name', required: true, default: $this->folder);
+        $this->data['db_name'] = text(label: 'Database name', required: true, default: str_replace('.', '_', $this->folder), validate: fn ($name) => $this->validDatabaseName($name) ? null : 'Only letters, digits, dashes and underscores.');
         $this->data['db_user'] = text(label: 'Database user', required: true, default: 'root');
         $this->data['db_password'] = text(label: 'Database password');
         $this->data['url'] = text(label: 'URL', required: true, default: "{$this->folder}.test");
@@ -105,9 +114,16 @@ class CreateRadicle extends Command
             default: config('wordpress.default_plugins')
         );
 
+        $this->data['repository'] = Config::get('cloud.organization') . "/{$this->folder}";
+        $this->data['github'] = confirm("Create the repository {$this->data['repository']} on GitHub and push it?");
+
+        if (!$this->requireTools(['git', 'git-flow', 'composer', 'npm', 'wp', ...($this->data['github'] ? ['gh'] : [])])) {
+            return self::FAILURE;
+        }
+
         if (!confirm('Are you sure you want to continue?')) {
             error('Radicle project creation cancelled.');
-            return;
+            return self::FAILURE;
         }
 
         Config::set("database.connections.terminal", [
@@ -122,53 +138,39 @@ class CreateRadicle extends Command
             DB::connection('terminal')->getPdo();
         } catch (\Exception $e) {
             error('Could not connect to the database. Please check your credentials and try again.');
-            return;
+            return self::FAILURE;
         }
 
-        $database = DB::connection('terminal')->select("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{$this->data['db_name']}'");
+        $database = DB::connection('terminal')->select('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?', [$this->data['db_name']]);
         if (count($database) > 0) {
             if (confirm('Database already exists. Do you want to drop the database?')) {
-                DB::connection('terminal')->statement("DROP DATABASE {$this->data['db_name']}");
+                DB::connection('terminal')->statement("DROP DATABASE `{$this->data['db_name']}`");
             } else {
                 error('Database already exists. Please remove the database or choose a different name.');
-                return;
+                return self::FAILURE;
             }
         }
 
-        DB::connection('terminal')->statement("CREATE DATABASE {$this->data['db_name']}");
+        DB::connection('terminal')->statement("CREATE DATABASE `{$this->data['db_name']}`");
 
-        info('----------------------------------------');
-        info('Clone radicle project');
-        info('----------------------------------------');
-        $this->cloneRadicleProject();
-        info('----------------------------------------');
-        info('Git');
-        info('----------------------------------------');
-        $this->setGit();
-        info('----------------------------------------');
-        info('Installing plugins');
-        info('----------------------------------------');
-        $this->installingPlugins();
-        info('----------------------------------------');
-        info('Install dependencies');
-        info('----------------------------------------');
-        $this->installingDependencies();
-        info('----------------------------------------');
-        info('Changing files');
-        info('----------------------------------------');
-        $this->changingFiles();
-        info('----------------------------------------');
-        info('Configuring Outlawz Cloud');
-        info('----------------------------------------');
-        $this->configuringCloud();
-        info('----------------------------------------');
-        info('Configuring wordpress');
-        info('----------------------------------------');
-        $this->configuringWordpress();
-        info('----------------------------------------');
-        info('Commit changes');
-        info('----------------------------------------');
-        $this->commitChanges();
+        $steps = [
+            'Clone radicle project' => fn () => $this->cloneRadicleProject(),
+            'Git' => fn () => $this->setGit(),
+            'Installing plugins' => fn () => $this->installingPlugins(),
+            'Install dependencies' => fn () => $this->installingDependencies(),
+            'Changing files' => fn () => $this->changingFiles(),
+            'Configuring Outlawz Cloud' => fn () => $this->configuringCloud(),
+            'Configuring wordpress' => fn () => $this->configuringWordpress(),
+            'Commit changes' => fn () => $this->commitChanges(),
+            ...($this->data['github'] ? ['GitHub' => fn () => $this->pushToGithub()] : []),
+        ];
+
+        foreach ($steps as $title => $step) {
+            if (!$this->step($title, $step)) {
+                error("The project in {$this->folder} is not finished: fix the problem above, then remove the folder and the database and try again.");
+                return self::FAILURE;
+            }
+        }
 
         info('----------------------------------------');
         info('Radicle project created successfully!');
@@ -181,15 +183,49 @@ class CreateRadicle extends Command
         info('Password: Welkom01!');
         info('----------------------------------------');
         info('Outlawz Cloud:');
-        info('Push develop and master to a repository in outlawz-team: .github/workflows/image.yml builds the image on the golden image.');
-        if (collect($this->data['plugins'])->contains(fn ($item) => isset($this->plugins()[$item]['repositories']))) {
-            warning('Private packages (ACF Pro): the build needs the repository secret COMPOSER_AUTH with the content of auth.json.');
-            warning('  gh secret set COMPOSER_AUTH -R outlawz-team/<repo> < ~/.composer/auth.json');
+        if ($this->data['github']) {
+            info("Pushed to https://github.com/{$this->data['repository']}: .github/workflows/image.yml builds the image of develop on the golden image.");
+        } else {
+            info('Push develop and master to a repository in outlawz-team: .github/workflows/image.yml builds the image on the golden image.');
+            if ($this->privatePackages("{$this->directory}/composer.json") !== []) {
+                warning('Private packages (ACF Pro): the build needs the repository secret COMPOSER_AUTH with the content of auth.json.');
+                warning('  gh secret set COMPOSER_AUTH -R outlawz-team/<repo> < ~/.composer/auth.json');
+            }
         }
         foreach ($this->cloudTodo as $todo) {
             warning($todo);
         }
         info('----------------------------------------');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Whether a database name is safe to use between backticks
+     */
+    protected function validDatabaseName($name)
+    {
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/', $name) === 1;
+    }
+
+    /**
+     * The keys and salts of WordPress: 64 random characters each, without quotes, backslashes or
+     * dollar signs, so they fit between the single quotes in .env.
+     */
+    protected function salts()
+    {
+        $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*()-_[]{}<>~+=,.;:/?|';
+        $salts = [];
+
+        foreach (['AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT'] as $key) {
+            $salt = '';
+            for ($i = 0; $i < 64; $i++) {
+                $salt .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+            $salts[$key] = $salt;
+        }
+
+        return $salts;
     }
 
     /**
@@ -197,12 +233,12 @@ class CreateRadicle extends Command
      */
     protected function cloneRadicleProject()
     {
-        shell_exec("git clone git@github.com:roots/radicle.git {$this->folder}");
-        $this->directory = exec("cd {$this->folder} && pwd");
+        $this->shell(['git', 'clone', '--depth', '1', 'git@github.com:roots/radicle.git', $this->folder]);
+        $this->directory = realpath($this->folder);
     }
 
     /**
-     * Clone the radicle project
+     * Changing files
      */
     protected function changingFiles()
     {
@@ -216,10 +252,10 @@ class CreateRadicle extends Command
             'DB_USER' => $this->data['db_user'],
             'DB_PASSWORD' => $this->data['db_password'],
             'WP_HOME' => "http://{$this->data['url']}",
+            ...$this->salts(),
         ], "{$this->directory}/.env");
         $this->stub('radicle/lintstagedrc', [], "{$this->directory}/.lintstagedrc");
         $this->stub('radicle/prettierrc', [], "{$this->directory}/.prettierrc");
-        $this->deleteDirectory("{$this->directory}/.git");
         $this->emptyDirectory("{$this->directory}/app/Composers");
         $this->stub('radicle/gitkeep', [], "{$this->directory}/app/Composers/.gitkeep");
         $this->emptyDirectory("{$this->directory}/resources/images/icons");
@@ -254,30 +290,13 @@ class CreateRadicle extends Command
      */
     protected function configuringCloud()
     {
-        foreach (Config::get('cloud.example_workflows') as $workflow) {
-            $this->deleteFile("{$this->directory}/.github/workflows/{$workflow}");
-        }
-        if (!is_dir("{$this->directory}/.github/workflows")) {
-            mkdir("{$this->directory}/.github/workflows", 0755, true);
-        }
-        $this->stub('radicle/image', [
-            'CLOUD_IMAGES_REF' => Config::get('cloud.cloud_images_ref'),
-        ], "{$this->directory}/.github/workflows/image.yml");
+        $this->cloudWorkflow($this->directory, 'wordpress');
 
-        // The golden image takes the lowest minor version the requirement allows: >=8.4, ^8.4, ~8.4 or 8.4.*.
-        $composer = json_decode(file_get_contents("{$this->directory}/composer.json"), true);
-        $php = str_replace(' ', '', $composer['require']['php'] ?? '');
-        if (!preg_match('/^((>=|\^|~)\d+\.\d+(\.\d+)?|\d+\.\d+\.\*)$/', $php)) {
-            shell_exec("cd {$this->folder} && composer require 'php:>=8.4'");
+        if ($this->cloudPhpVersion("{$this->directory}/composer.json", 'wordpress') === null) {
+            $this->setPhpRequirement($this->directory, Config::get('cloud.stacks.wordpress.requirement'));
         }
 
-        $config = "{$this->directory}/bedrock/application.php";
-        if (!$this->insertStub('radicle/db-ssl', $config, 'DB_SSL', ["Config::define('DB_NAME'"])) {
-            $this->cloudTodo[] = 'bedrock/application.php has no DB_SSL block: add stubs/radicle/db-ssl.stub of the cli by hand.';
-        }
-        if (!$this->insertStub('radicle/wp-mail-smtp', $config, 'WPMS_ON', ["/**\n * Debugging Settings", 'Config::apply();'])) {
-            $this->cloudTodo[] = 'bedrock/application.php has no WP Mail SMTP block: add stubs/radicle/wp-mail-smtp.stub of the cli by hand.';
-        }
+        $this->cloudTodo = $this->wordpressCloudConfig("{$this->directory}/bedrock/application.php");
         if (!in_array('wp-mail-smtp', $this->data['plugins'])) {
             $this->cloudTodo[] = 'WP Mail SMTP is not installed: without it the Mail service of Outlawz Cloud does nothing.';
         }
@@ -288,24 +307,20 @@ class CreateRadicle extends Command
      */
     protected function installingPlugins()
     {
-        $wpackagist = escapeshellarg(json_encode([
+        $wpackagist = json_encode([
             'type' => 'composer',
             'url' => 'https://wpackagist.org',
             'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
-        ]));
-        shell_exec("cd {$this->folder} && composer config repositories.wpackagist {$wpackagist}");
+        ]);
+        $this->shell(['composer', 'config', 'repositories.wpackagist', $wpackagist], $this->directory);
 
         foreach ($this->data['plugins'] as $item) {
             $plugin = $this->plugins()[$item];
-            if (isset($plugin['repositories'])) {
-                foreach ($plugin['repositories'] as $repository) {
-                    shell_exec("cd {$this->folder} && composer config repositories.{$plugin['key']} composer {$repository['url']}");
-                }
+            foreach ($plugin['repositories'] ?? [] as $repository) {
+                $this->shell(['composer', 'config', "repositories.{$plugin['key']}", $repository['type'], $repository['url']], $this->directory);
             }
             if (isset($plugin['require'])) {
-                foreach ($plugin['require'] as $require) {
-                    shell_exec("cd {$this->folder} && composer require {$require}");
-                }
+                $this->shell(['composer', 'require', ...$plugin['require']], $this->directory);
             }
         }
     }
@@ -315,29 +330,25 @@ class CreateRadicle extends Command
      */
     protected function installingDependencies()
     {
-        foreach ($this->composer as $package) {
-            shell_exec("cd {$this->folder} && composer require {$package}");
-        }
+        $this->shell(['composer', 'require', ...$this->composer], $this->directory);
+        $this->shell(['npm', 'install', '--save-dev', ...$this->npm['dev']], $this->directory);
 
-        foreach ($this->npm['dev'] as $package) {
-            shell_exec("cd {$this->folder} && npm install {$package} --save-dev");
-        }
+        $this->shell(['composer', 'install'], $this->directory);
+        $this->shell(['npm', 'install'], $this->directory);
+        $this->shell(['npm', 'run', 'build'], $this->directory);
 
-        shell_exec("cd {$this->folder} && composer install");
-        shell_exec("cd {$this->folder} && npm install");
-        shell_exec("cd {$this->folder} && npm run build");
-
-        shell_exec("cd {$this->folder} && npx husky init");
+        $this->shell(['npx', 'husky', 'init'], $this->directory);
         $this->stub('radicle/pre-commit', [], "{$this->directory}/.husky/pre-commit");
     }
 
     /**
-     * Set git
+     * Set git: a history of its own instead of the one of Roots, with git flow (master and develop)
      */
     protected function setGit()
     {
-        shell_exec("cd {$this->folder} && git branch -m main master");
-        shell_exec("cd {$this->folder} && git flow init -d");
+        $this->deleteDirectory("{$this->directory}/.git");
+        $this->shell(['git', 'init', '-b', 'master'], $this->directory);
+        $this->shell(['git', 'flow', 'init', '-d'], $this->directory);
     }
 
     /**
@@ -345,23 +356,44 @@ class CreateRadicle extends Command
      */
     protected function configuringWordpress()
     {
+        $this->shell(['wp', 'core', 'install', "--url={$this->data['url']}", "--title={$this->data['name']}", '--admin_user=outlawz', '--admin_password=Welkom01!', '--admin_email=dev@outlawz.nl'], $this->directory);
 
-        shell_exec("cd {$this->folder} && wp core install --url={$this->data['url']} --title={$this->data['name']} --admin_user=outlawz --admin_password=Welkom01! --admin_email=dev@outlawz.nl");
-        shell_exec("cd {$this->folder} && wp post delete $(wp post list --post_type='page' --format=ids) --force");
-        shell_exec("cd {$this->folder} && wp post delete $(wp post list --post_type='post' --format=ids) --force");
-        shell_exec("cd {$this->folder} && wp option update show_on_front page && wp option update page_on_front $(wp post create --post_type=page --post_title='Home' --post_status='publish' --porcelain)");
-        shell_exec("cd {$this->folder} && wp rewrite structure '/%postname%/'");
-        shell_exec("cd {$this->folder} && wp option update timezone_string 'Europe/Amsterdam'");
-        shell_exec("cd {$this->folder} && wp language core install nl_NL && wp site switch-language nl_NL");
-        shell_exec("cd {$this->folder} && wp acorn outlawz:boost");
+        foreach (['page', 'post'] as $type) {
+            $ids = $this->shell(['wp', 'post', 'list', "--post_type={$type}", '--format=ids'], $this->directory, quiet: true);
+            if ($ids !== '') {
+                $this->shell(['wp', 'post', 'delete', ...explode(' ', $ids), '--force'], $this->directory);
+            }
+        }
+
+        $home = $this->shell(['wp', 'post', 'create', '--post_type=page', '--post_title=Home', '--post_status=publish', '--porcelain'], $this->directory, quiet: true);
+        $this->shell(['wp', 'option', 'update', 'show_on_front', 'page'], $this->directory);
+        $this->shell(['wp', 'option', 'update', 'page_on_front', $home], $this->directory);
+        $this->shell(['wp', 'rewrite', 'structure', '/%postname%/'], $this->directory);
+        $this->shell(['wp', 'option', 'update', 'timezone_string', 'Europe/Amsterdam'], $this->directory);
+        $this->shell(['wp', 'language', 'core', 'install', 'nl_NL'], $this->directory);
+        $this->shell(['wp', 'site', 'switch-language', 'nl_NL'], $this->directory);
+        $this->shell(['wp', 'acorn', 'outlawz:boost'], $this->directory);
     }
 
     /**
-     * Commit changes
+     * Commit changes, on develop. Without the pre-commit hook: lint-staged on every file of the
+     * project is not what it is for.
      */
     protected function commitChanges()
     {
-        shell_exec("cd {$this->folder} && git add .");
-        shell_exec("cd {$this->folder} && git commit -m 'Initial commit'");
+        $this->shell(['git', 'add', '.'], $this->directory);
+        $this->shell(['git', 'commit', '--no-verify', '-m', 'Initial commit'], $this->directory);
+    }
+
+    /**
+     * Create the repository on GitHub, with COMPOSER_AUTH when the build needs it, and push it
+     */
+    protected function pushToGithub()
+    {
+        $this->cloudTodo = array_merge($this->cloudTodo, $this->createGithubRepository(
+            $this->directory,
+            $this->data['repository'],
+            $this->privatePackages("{$this->directory}/composer.json") !== []
+        ));
     }
 }

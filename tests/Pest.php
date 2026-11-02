@@ -39,7 +39,65 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something(): void
+/**
+ * An empty folder in the temp directory, with $files (path => contents) in it.
+ */
+function project(array $files = []): string
 {
-    // ..
+    $directory = sys_get_temp_dir() . '/outlawz-cli-' . uniqid();
+    mkdir($directory);
+
+    foreach ($files as $path => $contents) {
+        is_dir(dirname("{$directory}/{$path}")) || mkdir(dirname("{$directory}/{$path}"), 0755, true);
+        file_put_contents("{$directory}/{$path}", $contents);
+    }
+
+    return $directory;
+}
+
+/**
+ * A Radicle as Roots ships it, as far as Outlawz Cloud goes.
+ */
+function radicle(array $files = []): string
+{
+    $workflows = [];
+    foreach (glob(__DIR__ . '/Fixtures/workflows/*.yml') as $workflow) {
+        $workflows['.github/workflows/' . basename($workflow)] = file_get_contents($workflow);
+    }
+
+    return project([
+        'composer.json' => json_encode(['require' => ['php' => '>=8.4']]),
+        'bedrock/application.php' => file_get_contents(__DIR__ . '/Fixtures/radicle-application.php'),
+        'public/content/plugins/.gitkeep' => '',
+        ...$workflows,
+        ...$files,
+    ]);
+}
+
+/**
+ * Call a protected method of $object.
+ */
+function call(object $object, string $method, ...$arguments)
+{
+    return (new ReflectionMethod($object, $method))->invoke($object, ...$arguments);
+}
+
+/**
+ * Set protected properties of $object.
+ */
+function set(object $object, array $properties): object
+{
+    foreach ($properties as $property => $value) {
+        (new ReflectionProperty($object, $property))->setValue($object, $value);
+    }
+
+    return $object;
+}
+
+/**
+ * A protected property of $object.
+ */
+function get(object $object, string $property)
+{
+    return (new ReflectionProperty($object, $property))->getValue($object);
 }
