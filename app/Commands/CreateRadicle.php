@@ -187,6 +187,7 @@ class CreateRadicle extends Command
             info("Pushed to https://github.com/{$this->data['repository']}: .github/workflows/image.yml builds the image of develop on the golden image.");
         } else {
             info('Push develop and master to a repository in outlawz-team: .github/workflows/image.yml builds the image on the golden image.');
+            warning('Set the repository secret GHCR_PULL_TOKEN (ghcr-pull-token-actions in the vault) before the first push: gh secret set GHCR_PULL_TOKEN -R outlawz-team/<repo>');
             if ($this->privatePackages("{$this->directory}/composer.json") !== []) {
                 warning('Private packages (ACF Pro): the build needs the repository secret COMPOSER_AUTH with the content of auth.json.');
                 warning('  gh secret set COMPOSER_AUTH -R outlawz-team/<repo> < ~/.composer/auth.json');
