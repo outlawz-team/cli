@@ -264,22 +264,12 @@ class CreateRadicle extends Command
     }
 
     /**
-     * Install the chosen plugins, with wpackagist only when one of them comes from there
+     * Install the chosen plugins
      */
     protected function installingPlugins()
     {
-        $plugins = array_map(fn ($item) => $this->plugins()[$item], $this->data['plugins']);
-
-        if (collect($plugins)->pluck('require')->flatten()->contains(fn ($package) => str_starts_with($package, 'wpackagist-'))) {
-            $wpackagist = json_encode([
-                'type' => 'composer',
-                'url' => 'https://wpackagist.org',
-                'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
-            ]);
-            $this->shell(['composer', 'config', 'repositories.wpackagist', $wpackagist], $this->directory);
-        }
-
-        foreach ($plugins as $plugin) {
+        foreach ($this->data['plugins'] as $item) {
+            $plugin = $this->plugins()[$item];
             foreach ($plugin['repositories'] ?? [] as $repository) {
                 $this->shell(['composer', 'config', "repositories.{$plugin['key']}", $repository['type'], $repository['url']], $this->directory);
             }

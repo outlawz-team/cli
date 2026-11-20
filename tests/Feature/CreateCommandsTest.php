@@ -44,7 +44,7 @@ it('makes a new Radicle ready for Outlawz Cloud', function () {
 it('only offers the plugins that are not in the boilerplate', function () {
     $plugins = config('wordpress.plugins');
 
-    expect(array_keys($plugins))->toBe(['woocommerce', 'acf-extended', 'cp-blocks-for-acf'])
+    expect(array_keys($plugins))->toBe(['woocommerce'])
         ->and(array_diff(config('wordpress.default_plugins'), array_keys($plugins)))->toBe([]);
 });
 
