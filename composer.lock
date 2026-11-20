@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01e0f345a52c91b219fb67f56ef84386",
+    "content-hash": "2818056649f04d20585492799b8a7771",
     "packages": [
         {
             "name": "brick/math",
@@ -1358,67 +1358,6 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2026-03-17T13:55:49+00:00"
-        },
-        {
-            "name": "laravel-zero/phar-updater",
-            "version": "v1.4.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/laravel-zero/phar-updater.git",
-                "reference": "131bc5e7477c9233fab8087f7d0bbb234616b417"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/laravel-zero/phar-updater/zipball/131bc5e7477c9233fab8087f7d0bbb234616b417",
-                "reference": "131bc5e7477c9233fab8087f7d0bbb234616b417",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.2"
-            },
-            "conflict": {
-                "padraic/phar-updater": "*"
-            },
-            "require-dev": {
-                "ext-json": "*",
-                "laravel/pint": "^1.21",
-                "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^11.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Humbug\\SelfUpdate\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Padraic Brady",
-                    "email": "padraic.brady@gmail.com",
-                    "homepage": "http://blog.astrumfutura.com"
-                },
-                {
-                    "name": "Owen Voke",
-                    "email": "development@voke.dev",
-                    "homepage": "https://voke.dev"
-                }
-            ],
-            "description": "A thing to make PHAR self-updating easy and secure.",
-            "keywords": [
-                "humbug",
-                "phar",
-                "self-update",
-                "update"
-            ],
-            "support": {
-                "issues": "https://github.com/laravel-zero/phar-updater/issues",
-                "source": "https://github.com/laravel-zero/phar-updater/tree/v1.4.2"
-            },
-            "time": "2025-04-07T12:28:11+00:00"
         },
         {
             "name": "laravel/serializable-closure",

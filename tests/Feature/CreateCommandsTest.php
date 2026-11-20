@@ -64,3 +64,8 @@ it('names a new platform after the project', function () {
         ->and(json_decode(file_get_contents("{$directory}/apps/dashboard/package.json"), true)['name'])->toBe('mijn-platform-dashboard')
         ->and(json_decode(file_get_contents("{$directory}/bruno/bruno.json"), true))->toBe(['version' => '1', 'name' => 'Mijn Platform', 'type' => 'collection']);
 });
+
+it('updates itself with composer, from the private repository on GitHub', function () {
+    expect(Illuminate\Support\Facades\Artisan::all())->toHaveKey('self-update')
+        ->and(App\Commands\SelfUpdate::REPOSITORY)->toBe('https://github.com/outlawz-team/cli');
+});

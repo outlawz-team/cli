@@ -5,7 +5,11 @@ gebouwd op de golden images van [cloud-images](https://github.com/outlawz-team/c
 
 ## Installeren
 
+De repository is privé en staat niet op Packagist: composer haalt hem van GitHub, met jouw GitHub-token.
+
 ```bash
+composer config -g github-oauth.github.com "$(gh auth token)"
+composer global config repositories.outlawz-cli vcs https://github.com/outlawz-team/cli
 composer global require outlawz-team/cli
 ```
 
@@ -15,7 +19,7 @@ Zorg dat de bin-map van composer in je `PATH` staat (`composer global config bin
 outlawz self-update
 ```
 
-of `composer global update outlawz-team/cli`.
+Dat is `composer global update outlawz-team/cli` (en zet de repository hierboven als die er nog niet is).
 
 ## Wat je nodig hebt
 
@@ -128,5 +132,5 @@ scripts/release.sh 1.2.0
 ```
 
 Het script doet de release met git flow, bouwt `builds/outlawz` met die versie, tagt hem en pusht `master`, `develop`
-en de tag. `composer global require` en `self-update` nemen de phar uit de tag, dus hij moet in de release gebouwd
-zijn. De workflow Release controleert dat en maakt de release op GitHub aan.
+en de tag. `composer global require` en `self-update` nemen de phar uit de tag (via composer), dus hij moet in de
+release gebouwd zijn. De workflow Release controleert dat en maakt de release op GitHub aan.
