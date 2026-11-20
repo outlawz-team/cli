@@ -32,7 +32,7 @@ it('refuses a folder with characters a shell or database could trip over', funct
 
 it('makes a new Radicle ready for Outlawz Cloud', function () {
     $directory = radicle();
-    $command = set(new CreateRadicle, ['folder' => $directory, 'directory' => $directory, 'data' => ['plugins' => ['wp-mail-smtp']]]);
+    $command = set(new CreateRadicle, ['folder' => $directory, 'directory' => $directory, 'data' => ['plugins' => []]]);
 
     call($command, 'configuringCloud');
 
@@ -41,13 +41,11 @@ it('makes a new Radicle ready for Outlawz Cloud', function () {
         ->and(get($command, 'cloudTodo'))->toBe([]);
 });
 
-it('says when WP Mail SMTP is not chosen', function () {
-    $directory = radicle();
-    $command = set(new CreateRadicle, ['folder' => $directory, 'directory' => $directory, 'data' => ['plugins' => []]]);
+it('only offers the plugins that are not in the boilerplate', function () {
+    $plugins = config('wordpress.plugins');
 
-    call($command, 'configuringCloud');
-
-    expect(get($command, 'cloudTodo'))->toHaveCount(1)->{0}->toContain('WP Mail SMTP is not installed');
+    expect(array_keys($plugins))->toBe(['woocommerce', 'acf-extended', 'cp-blocks-for-acf'])
+        ->and(array_diff(config('wordpress.default_plugins'), array_keys($plugins)))->toBe([]);
 });
 
 it('names a new platform after the project', function () {
