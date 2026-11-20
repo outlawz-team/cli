@@ -41,8 +41,7 @@ Een nieuwe WordPress-site op [Radicle](https://roots.io/radicle/), vanuit
 de vaste plugins (ACF Pro, JetFormBuilder, Imagify, Yoast SEO, Classic Editor, WP Mail SMTP, WP Mail Logging, Post
 Duplicator en Safe SVG), `outlawz-team/radicle`, prettier, lint-staged en husky, de AI-bestanden en skills van
 Outlawz (`CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/`, `.cursor/`, `.mcp.json`) en al klaar voor Outlawz Cloud.
-Het vraagt de naam, de database, de URL en de plugins die je per project kiest (WooCommerce, ACF Extended, CP Blocks for
-ACF), en zet daarna alles klaar:
+Het vraagt de naam, de database, de URL en of je WooCommerce wilt, en zet daarna alles klaar:
 
 - de boilerplate met een eigen git-geschiedenis, `master` en `develop` (git flow);
 - de gekozen plugins, en alle pakketten op hun nieuwste versie;
