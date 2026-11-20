@@ -143,9 +143,9 @@ class CreateRadicle extends Command
         $steps = [
             'Clone radicle-boilerplate' => fn () => $this->cloneBoilerplate(),
             'Git' => fn () => $this->setGit(),
+            'Changing files' => fn () => $this->changingFiles(),
             'Installing plugins' => fn () => $this->installingPlugins(),
             'Install dependencies' => fn () => $this->installingDependencies(),
-            'Changing files' => fn () => $this->changingFiles(),
             'Configuring Outlawz Cloud' => fn () => $this->configuringCloud(),
             'Configuring wordpress' => fn () => $this->configuringWordpress(),
             'Commit changes' => fn () => $this->commitChanges(),
@@ -217,20 +217,23 @@ class CreateRadicle extends Command
     }
 
     /**
-     * Clone the boilerplate, without what is only for the boilerplate itself
+     * Clone the boilerplate
      */
     protected function cloneBoilerplate()
     {
         $this->shell(['git', 'clone', '--depth', '1', $this->boilerplate, $this->folder]);
         $this->directory = realpath($this->folder);
-        $this->deleteDirectory("{$this->directory}/.boilerplate");
     }
 
     /**
-     * The files of the project itself: the name of the theme and .env. The rest is in the boilerplate.
+     * The files of the project itself: the name of the theme and of the composer package, and .env.
+     * The rest is in the boilerplate.
      */
     protected function changingFiles()
     {
+        $this->shell(['composer', 'config', 'name', Config::get('cloud.organization') . "/{$this->folder}"], $this->directory);
+        $this->shell(['composer', 'config', 'description', "The WordPress site of {$this->data['name']}"], $this->directory);
+
         $this->stub('radicle/style', [
             'PROJECTNAME' => $this->data['name']
         ], "{$this->directory}/public/content/themes/radicle/style.css");
@@ -287,12 +290,13 @@ class CreateRadicle extends Command
     }
 
     /**
-     * Install the dependencies. npm install sets up husky (the prepare script of the boilerplate).
+     * Install the dependencies, at their newest versions: the lock files of the boilerplate are as old
+     * as its last update. npm sets up husky (the prepare script of the boilerplate).
      */
     protected function installingDependencies()
     {
-        $this->shell(['composer', 'install'], $this->directory);
-        $this->shell(['npm', 'install'], $this->directory);
+        $this->shell(['composer', 'update', '--no-interaction'], $this->directory);
+        $this->shell(['npm', 'update'], $this->directory);
         $this->shell(['npm', 'run', 'build'], $this->directory);
     }
 
@@ -327,7 +331,6 @@ class CreateRadicle extends Command
         $this->shell(['wp', 'option', 'update', 'timezone_string', 'Europe/Amsterdam'], $this->directory);
         $this->shell(['wp', 'language', 'core', 'install', 'nl_NL'], $this->directory);
         $this->shell(['wp', 'site', 'switch-language', 'nl_NL'], $this->directory);
-        $this->shell(['wp', 'acorn', 'outlawz:boost'], $this->directory);
     }
 
     /**
