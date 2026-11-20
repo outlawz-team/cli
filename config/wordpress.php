@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'default_plugins' => ['acf-extended', 'cp-blocks-for-acf'],
+    'default_plugins' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -40,16 +40,6 @@ return [
             'key' => 'woocommerce',
             'name' => 'WooCommerce',
             'require' => ['wp-plugin/woocommerce'],
-        ],
-        'acf-extended' => [
-            'key' => 'acf-extended',
-            'name' => 'ACF Extended',
-            'require' => ['wpackagist-plugin/acf-extended'],
-        ],
-        'cp-blocks-for-acf' => [
-            'key' => 'cp-blocks-for-acf',
-            'name' => 'CP Blocks for ACF',
-            'require' => ['wpackagist-plugin/cp-blocks-for-acf'],
         ],
     ],
 
