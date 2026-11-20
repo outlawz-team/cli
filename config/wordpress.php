@@ -11,14 +11,27 @@ return [
     |
     */
 
-    'default_plugins' => ['classic-editor', 'wp-mail-smtp', 'wp-mail-logging', 'advanced-custom-fields', 'yoast-seo', 'post-duplicator', 'acf-extended', 'cp-blocks-for-acf', 'safe-svg'],
+    'default_plugins' => ['acf-extended', 'cp-blocks-for-acf'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fixed WordPress plugins
+    |--------------------------------------------------------------------------
+    |
+    | The plugins every project has: they are in composer.json of
+    | outlawz-team/radicle-boilerplate. Only to say so; a change is a change
+    | in the boilerplate.
+    |
+    */
+
+    'fixed_plugins' => ['Advanced Custom Fields Pro', 'JetFormBuilder', 'Imagify', 'Yoast SEO', 'Classic Editor', 'WP Mail SMTP', 'WP Mail Logging', 'Post Duplicator', 'Safe SVG'],
 
     /*
     |--------------------------------------------------------------------------
     | WordPress Plugins
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the WordPress plugins that can be installed.
+    | The WordPress plugins to choose per project.
     |
     */
 
@@ -27,47 +40,6 @@ return [
             'key' => 'woocommerce',
             'name' => 'WooCommerce',
             'require' => ['wp-plugin/woocommerce'],
-        ],
-        'imagify' => [
-            'key' => 'imagify',
-            'name' => 'Imagify',
-            'require' => ['wp-plugin/imagify'],
-        ],
-        'jetformbuilder' => [
-            'key' => 'jetformbuilder',
-            'name' => 'JetFormBuilder',
-            'require' => ['wp-plugin/jetformbuilder'],
-        ],
-        'advanced-custom-fields' => [
-            'key' => 'advanced-custom-fields',
-            'name' => 'Advanced Custom Fields',
-            'repositories' => [['type' => 'composer', 'url' => 'https://connect.advancedcustomfields.com']],
-            'require' => ['wpengine/advanced-custom-fields-pro', 'stoutlogic/acf-builder'],
-        ],
-        'yoast-seo' => [
-            'key' => 'yoast-seo',
-            'name' => 'Yoast SEO',
-            'require' => ['wp-plugin/wordpress-seo'],
-        ],
-        'classic-editor' => [
-            'key' => 'classic-editor',
-            'name' => 'Classic Editor',
-            'require' => ['wp-plugin/classic-editor'],
-        ],
-        'wp-mail-smtp' => [
-            'key' => 'wp-mail-smtp',
-            'name' => 'WP Mail SMTP',
-            'require' => ['wp-plugin/wp-mail-smtp'],
-        ],
-        'wp-mail-logging' => [
-            'key' => 'wp-mail-logging',
-            'name' => 'WP Mail Logging',
-            'require' => ['wp-plugin/wp-mail-logging'],
-        ],
-        'post-duplicator' => [
-            'key' => 'post-duplicator',
-            'name' => 'Post Duplicator',
-            'require' => ['wp-plugin/post-duplicator'],
         ],
         'acf-extended' => [
             'key' => 'acf-extended',
@@ -78,11 +50,6 @@ return [
             'key' => 'cp-blocks-for-acf',
             'name' => 'CP Blocks for ACF',
             'require' => ['wpackagist-plugin/cp-blocks-for-acf'],
-        ],
-        'safe-svg' => [
-            'key' => 'safe-svg',
-            'name' => 'Safe SVG',
-            'require' => ['wpackagist-plugin/safe-svg'],
         ],
     ],
 

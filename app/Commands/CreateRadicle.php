@@ -34,27 +34,13 @@ class CreateRadicle extends Command
     protected $description = 'Create a new radicle project.';
 
     /**
-     * Composer packages
+     * Radicle of Outlawz: cleaned up, with the fixed plugins, outlawz-team/radicle, prettier, lint-staged
+     * and husky. Private, like Radicle itself: only the team has access.
      */
-    protected $composer = [
-        'outlawz-team/radicle',
-    ];
+    protected $boilerplate = 'git@github.com:outlawz-team/radicle-boilerplate.git';
 
     /**
-     * Npm packages
-     */
-    protected $npm = [
-        'dev' => [
-            '@prettier/plugin-php',
-            'prettier-plugin-tailwindcss',
-            '@shufo/prettier-plugin-blade',
-            'lint-staged',
-            'husky'
-        ]
-    ];
-
-    /**
-     * Plugins
+     * The plugins to choose per project; the fixed plugins are in the boilerplate
      */
     protected function plugins()
     {
@@ -111,7 +97,8 @@ class CreateRadicle extends Command
         $this->data['plugins'] = multiselect(
             label: 'Which plugins would you like to include?',
             options: array_column($this->plugins(), 'name', 'key'),
-            default: config('wordpress.default_plugins')
+            default: config('wordpress.default_plugins'),
+            hint: 'Always in (radicle-boilerplate): ' . implode(', ', Config::get('wordpress.fixed_plugins')) . '.'
         );
 
         $this->data['repository'] = Config::get('cloud.organization') . "/{$this->folder}";
@@ -154,11 +141,11 @@ class CreateRadicle extends Command
         DB::connection('terminal')->statement("CREATE DATABASE `{$this->data['db_name']}`");
 
         $steps = [
-            'Clone radicle project' => fn () => $this->cloneRadicleProject(),
+            'Clone radicle-boilerplate' => fn () => $this->cloneBoilerplate(),
             'Git' => fn () => $this->setGit(),
+            'Changing files' => fn () => $this->changingFiles(),
             'Installing plugins' => fn () => $this->installingPlugins(),
             'Install dependencies' => fn () => $this->installingDependencies(),
-            'Changing files' => fn () => $this->changingFiles(),
             'Configuring Outlawz Cloud' => fn () => $this->configuringCloud(),
             'Configuring wordpress' => fn () => $this->configuringWordpress(),
             'Commit changes' => fn () => $this->commitChanges(),
@@ -230,23 +217,26 @@ class CreateRadicle extends Command
     }
 
     /**
-     * Clone the radicle project
+     * Clone the boilerplate
      */
-    protected function cloneRadicleProject()
+    protected function cloneBoilerplate()
     {
-        $this->shell(['git', 'clone', '--depth', '1', 'git@github.com:roots/radicle.git', $this->folder]);
+        $this->shell(['git', 'clone', '--depth', '1', $this->boilerplate, $this->folder]);
         $this->directory = realpath($this->folder);
     }
 
     /**
-     * Changing files
+     * The files of the project itself: the name of the theme and of the composer package, and .env.
+     * The rest is in the boilerplate.
      */
     protected function changingFiles()
     {
+        $this->shell(['composer', 'config', 'name', Config::get('cloud.organization') . "/{$this->folder}"], $this->directory);
+        $this->shell(['composer', 'config', 'description', "The WordPress site of {$this->data['name']}"], $this->directory);
+
         $this->stub('radicle/style', [
             'PROJECTNAME' => $this->data['name']
         ], "{$this->directory}/public/content/themes/radicle/style.css");
-        $this->stub('radicle/screenshot', [], "{$this->directory}/public/content/themes/radicle/screenshot.png");
         $this->stub('radicle/env', [
             'DB_HOST' => $this->data['db_host'],
             'DB_NAME' => $this->data['db_name'],
@@ -255,33 +245,6 @@ class CreateRadicle extends Command
             'WP_HOME' => "http://{$this->data['url']}",
             ...$this->salts(),
         ], "{$this->directory}/.env");
-        $this->stub('radicle/lintstagedrc', [], "{$this->directory}/.lintstagedrc");
-        $this->stub('radicle/prettierrc', [], "{$this->directory}/.prettierrc");
-        $this->emptyDirectory("{$this->directory}/app/Composers");
-        $this->stub('radicle/gitkeep', [], "{$this->directory}/app/Composers/.gitkeep");
-        $this->emptyDirectory("{$this->directory}/resources/images/icons");
-        $this->stub('radicle/gitkeep', [], "{$this->directory}/resources/images/icons/.gitkeep");
-        $this->emptyDirectory("{$this->directory}/resources/scripts/editor");
-        $this->stub('radicle/gitkeep', [], "{$this->directory}/resources/scripts/editor/.gitkeep");
-        $this->deleteDirectory("{$this->directory}/resources/views/blocks");
-        $this->deleteFile("{$this->directory}/resources/views/components/alert.blade.php");
-        $this->deleteFile("{$this->directory}/resources/views/components/modal.blade.php");
-        $this->deleteFile("{$this->directory}/resources/views/components/table.blade.php");
-        $this->deleteDirectory("{$this->directory}/resources/views/forms");
-        $this->stub('radicle/app', [], "{$this->directory}/resources/views/layouts/app.blade.php");
-        $this->deleteDirectory("{$this->directory}/resources/views/partials");
-        $this->stub('radicle/header', [], "{$this->directory}/resources/views/sections/header.blade.php");
-        $this->stub('radicle/footer', [], "{$this->directory}/resources/views/sections/footer.blade.php");
-        $this->stub('radicle/404', [], "{$this->directory}/resources/views/404.blade.php");
-        $this->stub('radicle/index', [], "{$this->directory}/resources/views/index.blade.php");
-        $this->stub('radicle/page', [], "{$this->directory}/resources/views/page.blade.php");
-        $this->stub('radicle/template-custom', [], "{$this->directory}/resources/views/template-custom.blade.php");
-        $this->deleteFile("{$this->directory}/resources/views/search.blade.php");
-        $this->deleteFile("{$this->directory}/resources/views/single.blade.php");
-        $this->deleteFile("{$this->directory}/resources/views/welcome.blade.php");
-        $this->stub('radicle/web', [], "{$this->directory}/routes/web.php");
-        $this->stub('radicle/BlocksServiceProvider', [], "{$this->directory}/app/Providers/BlocksServiceProvider.php");
-        $this->stub('radicle/post-types', [], "{$this->directory}/config/post-types.php");
     }
 
     /**
@@ -298,25 +261,25 @@ class CreateRadicle extends Command
         }
 
         $this->cloudTodo = $this->wordpressCloudConfig("{$this->directory}/bedrock/application.php");
-        if (!in_array('wp-mail-smtp', $this->data['plugins'])) {
-            $this->cloudTodo[] = 'WP Mail SMTP is not installed: without it the Mail service of Outlawz Cloud does nothing.';
-        }
     }
 
     /**
-     * Install the plugins
+     * Install the chosen plugins, with wpackagist only when one of them comes from there
      */
     protected function installingPlugins()
     {
-        $wpackagist = json_encode([
-            'type' => 'composer',
-            'url' => 'https://wpackagist.org',
-            'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
-        ]);
-        $this->shell(['composer', 'config', 'repositories.wpackagist', $wpackagist], $this->directory);
+        $plugins = array_map(fn ($item) => $this->plugins()[$item], $this->data['plugins']);
 
-        foreach ($this->data['plugins'] as $item) {
-            $plugin = $this->plugins()[$item];
+        if (collect($plugins)->pluck('require')->flatten()->contains(fn ($package) => str_starts_with($package, 'wpackagist-'))) {
+            $wpackagist = json_encode([
+                'type' => 'composer',
+                'url' => 'https://wpackagist.org',
+                'only' => ['wpackagist-plugin/*', 'wpackagist-theme/*'],
+            ]);
+            $this->shell(['composer', 'config', 'repositories.wpackagist', $wpackagist], $this->directory);
+        }
+
+        foreach ($plugins as $plugin) {
             foreach ($plugin['repositories'] ?? [] as $repository) {
                 $this->shell(['composer', 'config', "repositories.{$plugin['key']}", $repository['type'], $repository['url']], $this->directory);
             }
@@ -327,23 +290,18 @@ class CreateRadicle extends Command
     }
 
     /**
-     * Install the dependencies
+     * Install the dependencies, at their newest versions: the lock files of the boilerplate are as old
+     * as its last update. npm sets up husky (the prepare script of the boilerplate).
      */
     protected function installingDependencies()
     {
-        $this->shell(['composer', 'require', ...$this->composer], $this->directory);
-        $this->shell(['npm', 'install', '--save-dev', ...$this->npm['dev']], $this->directory);
-
-        $this->shell(['composer', 'install'], $this->directory);
-        $this->shell(['npm', 'install'], $this->directory);
+        $this->shell(['composer', 'update', '--no-interaction'], $this->directory);
+        $this->shell(['npm', 'update'], $this->directory);
         $this->shell(['npm', 'run', 'build'], $this->directory);
-
-        $this->shell(['npx', 'husky', 'init'], $this->directory);
-        $this->stub('radicle/pre-commit', [], "{$this->directory}/.husky/pre-commit");
     }
 
     /**
-     * Set git: a history of its own instead of the one of Roots, with git flow (master and develop)
+     * Set git: a history of its own instead of the one of the boilerplate, with git flow (master and develop)
      */
     protected function setGit()
     {
@@ -373,7 +331,6 @@ class CreateRadicle extends Command
         $this->shell(['wp', 'option', 'update', 'timezone_string', 'Europe/Amsterdam'], $this->directory);
         $this->shell(['wp', 'language', 'core', 'install', 'nl_NL'], $this->directory);
         $this->shell(['wp', 'site', 'switch-language', 'nl_NL'], $this->directory);
-        $this->shell(['wp', 'acorn', 'outlawz:boost'], $this->directory);
     }
 
     /**
