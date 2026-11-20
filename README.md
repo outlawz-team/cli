@@ -32,13 +32,18 @@ Elk commando controleert vooraf wat het nodig heeft en zegt hoe je het installee
 
 ### `outlawz create:radicle <map>`
 
-Een nieuwe WordPress-site op [Radicle](https://roots.io/radicle/): vraagt de naam, de database, de URL en de plugins, en
-zet daarna alles klaar:
+Een nieuwe WordPress-site op [Radicle](https://roots.io/radicle/), vanuit
+[radicle-boilerplate](https://github.com/outlawz-team/radicle-boilerplate) (privé): Radicle zonder de voorbeelden, met
+de vaste plugins (ACF Pro, JetFormBuilder, Imagify, Yoast SEO, Classic Editor, WP Mail SMTP, WP Mail Logging, Post
+Duplicator en Safe SVG), `outlawz-team/radicle`, prettier, lint-staged en husky, de AI-bestanden en skills van
+Outlawz (`CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/`, `.cursor/`, `.mcp.json`) en al klaar voor Outlawz Cloud.
+Het vraagt de naam, de database, de URL en de plugins die je per project kiest (WooCommerce, ACF Extended, CP Blocks for
+ACF), en zet daarna alles klaar:
 
-- Radicle met een eigen git-geschiedenis, `master` en `develop` (git flow);
-- de gekozen plugins, de pakketten van Outlawz, prettier, lint-staged en husky;
-- `.env` met de database en echte keys en salts;
-- de bestanden van Outlawz (thema, layouts, blocks, post types);
+- de boilerplate met een eigen git-geschiedenis, `master` en `develop` (git flow);
+- de gekozen plugins, en alle pakketten op hun nieuwste versie;
+- `composer.json` met de naam `outlawz-team/<map>`;
+- `.env` met de database en echte keys en salts, en de naam van het thema;
 - WordPress geïnstalleerd, in het Nederlands, met een pagina Home (login `outlawz` / `Welkom01!`);
 - klaar voor Outlawz Cloud (zie hieronder);
 - een eerste commit op `develop`, en als je dat wilt de repository `outlawz-team/<map>` op GitHub, met de
